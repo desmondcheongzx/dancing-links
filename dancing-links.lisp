@@ -27,6 +27,33 @@
   (setf *matrix* (make-instance 'data :name 'header :columns columns))
   (loop for row in matrix do (add-row row)))
 
+(defun cover-column (column)
+  (setf (right (left column)) (right column))
+  (setf (left (right column)) (left column)) ;dance column out
+  (loop ;dance row out
+     for row = (down column) then (down row)
+     until (equal row column)
+     do (loop
+	   for i = (right row) then (right i)
+	   until (equal i row)
+	   do (progn
+		(setf (down (up i)) (down i))
+		(setf (up (down i)) (up i))))))
+
+(defun uncover-column (column)
+  (setf (right (left column)) column)
+  (setf (left (right column)) column) ;dance column in
+  (loop ;dance row in
+     for row = (up column) then (up row)
+     until (equal row column)
+     do (loop
+	   for i = (left row) then (left i)
+	   until (equal i row)
+	   do (progn
+		(setf (down (up i)) i)
+		(setf (up (down i)) i)))))
+     
+;it's a sparse table, we're allowed to be sligtly inefficient for each insertion. Cut me some slack man
 (defun add-row (row)
   "Adds a row of data objects to *matrix*."
   (let ((leftmost nil))
@@ -57,18 +84,16 @@
     new-data))
 
 (defun explore (matrix)
-  (let ((cursor (first-column matrix)))
+  (let ((cursor matrix))
     (loop for input = (read)
        until (equal input 'q)
-       do (case input
-	    (a (setf cursor (left cursor)))
-	    (s (setf cursor (down cursor)))
-	    (d (setf cursor (right cursor)))
-	    (w (setf cursor (up cursor)))
-	    (p (format t "~a~%"
+       do (progn (case input
+		   (a (setf cursor (left cursor)))
+		   (s (setf cursor (down cursor)))
+		   (d (setf cursor (right cursor)))
+		   (w (setf cursor (up cursor))))
+		 (format t "~a~%"
 		       (if (null (name cursor))
 			   (name (column cursor))
-			   (name cursor))))))))
-
-
+			   (name cursor)))))))
 

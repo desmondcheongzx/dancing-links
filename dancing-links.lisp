@@ -26,12 +26,71 @@
 	    (setf (left x) new-data)))))
 
 (defvar *matrix* nil)
+(defvar *solution* nil)
 
 (defun initialize-matrix (columns matrix)
   (setf *matrix* (make-instance 'header-data
 				:name 'header
 				:columns columns))
   (loop for row in matrix do (add-row row)))
+
+(defun testor ()
+  (initialize-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
+					(1 0 0 1 0 0 1)
+					(0 1 1 0 0 1 0)
+					(1 0 0 1 0 0 0)
+					(0 1 0 0 0 0 1)
+					(0 0 0 1 1 0 1)))
+  (setf *solution* nil)
+  (solve 0))
+
+(defun solve (&optional (lvl 0))
+  (explore *matrix*)
+  (push lvl *solution*)
+  (let ((column (choose-column *matrix*)))
+    (unless (zerop (size column))
+      (if (equal column *matrix*) (print-solution)
+	  (progn
+	    (push (name column) *solution*)
+	    (cover-column column)
+	    (loop
+	       for row = (down column) then (down row)
+	       until (equal row column)
+	       do (progn
+		    (loop
+		       for i = (right row) then (right i)
+		       until (equal i row)
+		       do (progn
+			    (cover-column (column i))
+			    (push (name (column i)) *solution*)))
+		    (solve (1+ lvl))
+		    (loop
+		       for i = (left row) then (left i)
+		       until (equal i row)
+		       do (progn
+			    (uncover-column (column i))
+			    (pop *solution*)))))
+	    (pop *solution*)))))
+    (pop *solution*))
+  
+(defun print-solution ()
+  (print *solution*)
+  (format t "~%")
+  (loop
+     for i in *solution*
+     do (if (numberp i) (format t "~%")
+	    (format t "~a" i))))
+
+(defun choose-column (matrix)
+  (let ((s most-positive-fixnum)
+	(column matrix))
+    (loop
+       for c = (right matrix) then (right c)
+       until (equal c matrix)
+       do (when (< (size c) s)
+	    (setf s (size c))
+	    (setf column c)))
+    column))
 
 (defun cover-column (column)
   (setf (right (left column)) (right column))
@@ -43,6 +102,7 @@
 	   for i = (right row) then (right i)
 	   until (equal i row)
 	   do (progn
+		(decf (size column))
 		(setf (down (up i)) (down i))
 		(setf (up (down i)) (up i))))))
 
@@ -56,6 +116,7 @@
 	   for i = (left row) then (left i)
 	   until (equal i row)
 	   do (progn
+		(incf (size column))
 		(setf (down (up i)) i)
 		(setf (up (down i)) i)))))
      
@@ -69,13 +130,15 @@
        do (when (= i 1)
 	    (let ((new-data (insert-data c)))
 	      (if (null leftmost)
-		  (progn (setf leftmost new-data)
-			 (setf (left leftmost) leftmost)
-			 (setf (right leftmost) leftmost))
-		  (progn (setf (right new-data) leftmost)
-			 (setf (left new-data) (left leftmost))
-			 (setf (right (left leftmost)) new-data)
-			 (setf (left leftmost) new-data))))))))
+		  (progn
+		    (setf leftmost new-data)
+		    (setf (left leftmost) leftmost)
+		    (setf (right leftmost) leftmost))
+		  (progn
+		    (setf (right new-data) leftmost)
+		    (setf (left new-data) (left leftmost))
+		    (setf (right (left leftmost)) new-data)
+		    (setf (left leftmost) new-data))))))))
 
 (defun first-column (matrix) (right matrix))
 

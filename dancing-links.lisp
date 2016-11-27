@@ -5,16 +5,20 @@
    (down :initarg :down :initform nil :accessor down)
    (left :initarg :left :initform nil :accessor left)
    (right :initarg :right :initform nil :accessor right)
-   (column :initarg :column :initform nil :accessor column)
-   (name :initarg :name :initform nil :accessor name)))
+   (column :initarg :column :initform nil :accessor column)))
 
-(defmethod initialize-instance :after ((x data) &key (columns nil))
+(defclass header-data (data)
+  ((name :initarg :name :initform nil :accessor name)
+   (size :initarg :size :initform 0 :accessor size)))
+
+(defmethod initialize-instance :after ((x header-data) &key (columns nil))
   (setf (left x) x)
+  (setf (column x) x)
   (unless (null columns)
     (loop
        for prev = x then (right prev)
        for c in columns
-       do (let ((new-data (make-instance 'data :name c :right x)))
+       do (let ((new-data (make-instance 'header-data :name c :right x)))
 	    (setf (up new-data) new-data)
 	    (setf (down new-data) new-data)
 	    (setf (right prev) new-data)
@@ -24,7 +28,9 @@
 (defvar *matrix* nil)
 
 (defun initialize-matrix (columns matrix)
-  (setf *matrix* (make-instance 'data :name 'header :columns columns))
+  (setf *matrix* (make-instance 'header-data
+				:name 'header
+				:columns columns))
   (loop for row in matrix do (add-row row)))
 
 (defun cover-column (column)
@@ -92,8 +98,5 @@
 		   (s (setf cursor (down cursor)))
 		   (d (setf cursor (right cursor)))
 		   (w (setf cursor (up cursor))))
-		 (format t "~a~%"
-		       (if (null (name cursor))
-			   (name (column cursor))
-			   (name cursor)))))))
+		 (format t "~a~%" (name (column cursor)))))))
 

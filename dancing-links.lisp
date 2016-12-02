@@ -45,41 +45,51 @@
   (solve 0))
 
 (defun solve (&optional (lvl 0))
-  (explore *matrix*)
   (push lvl *solution*)
   (let ((column (choose-column *matrix*)))
-    (unless (zerop (size column))
-      (if (equal column *matrix*) (print-solution)
-	  (progn
-	    (push (name column) *solution*)
-	    (cover-column column)
-	    (loop
-	       for row = (down column) then (down row)
-	       until (equal row column)
-	       do (progn
-		    (loop
-		       for i = (right row) then (right i)
-		       until (equal i row)
-		       do (progn
-			    (cover-column (column i))
-			    (push (name (column i)) *solution*)))
-		    (solve (1+ lvl))
-		    (loop
-		       for i = (left row) then (left i)
-		       until (equal i row)
-		       do (progn
-			    (uncover-column (column i))
-			    (pop *solution*)))))
-	    (pop *solution*)))))
-    (pop *solution*))
+    (if (equal column *matrix*) (print-solution)
+	(unless (zerop (size column))
+	  (push (name column) *solution*)
+	  (cover-column column)
+	  (loop
+	     for row = (down column) then (down row)
+	     until (equal row column)
+	     do (progn
+		  (loop
+		     for i = (right row) then (right i)
+		     until (equal i row)
+		     do (progn
+			  (cover-column (column i))
+			  (push (name (column i)) *solution*)))
+		  (solve (1+ lvl))
+		  (loop
+		     for i = (left row) then (left i)
+		     until (equal i row)
+		     do (progn
+			  (uncover-column (column i))
+			  (pop *solution*)))))
+	  (uncover-column column)
+	  (pop *solution*))))
+  (pop *solution*))
   
 (defun print-solution ()
   (print *solution*)
   (format t "~%")
   (loop
-     for i in *solution*
+     for i in (reverse *solution*)
      do (if (numberp i) (format t "~%")
 	    (format t "~a" i))))
+
+(defun print-state (lvl matrix)
+  (format t "~a " lvl)
+  (print-matrix matrix))
+
+(defun print-matrix (matrix)
+  (loop
+     for i = (right matrix) then (right i)
+     until (equal i matrix)
+     do (format t "~a " (name i))
+     finally (format t "~%")))
 
 (defun choose-column (matrix)
   (let ((s most-positive-fixnum)
@@ -150,6 +160,7 @@
 				 :column column)))
     (setf (down (up column)) new-data)
     (setf (up column) new-data)
+    (incf (size column)) ;increase the size of the column
     new-data))
 
 (defun explore (matrix)

@@ -1,4 +1,8 @@
-#!/usr/bin/sbcl --script
+(defpackage :dancing-links
+  (:use :common-lisp)
+  (:export :solve-matrix))
+
+(in-package :dancing-links)
 
 (defclass data ()
   ((up :initarg :up :initform nil :accessor up)
@@ -28,6 +32,11 @@
 (defvar *matrix* nil)
 (defvar *solution* nil)
 
+(defun solve-matrix (columns matrix)
+  (initialize-matrix columns matrix)
+  (setf *solution* nil)
+  (solve))
+
 (defun initialize-matrix (columns matrix)
   (setf *matrix* (make-instance 'header-data
 				:name 'header
@@ -35,15 +44,12 @@
   (loop for row in matrix do (add-row row)))
 
 (defun testor ()
-  (initialize-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
+  (solve-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
 					(1 0 0 1 0 0 1)
 					(0 1 1 0 0 1 0)
 					(1 0 0 1 0 0 0)
 					(0 1 0 0 0 0 1)
-					(0 0 0 1 1 0 1)))
-  (setf *solution* nil)
-  (solve 0))
-
+					(0 0 0 1 1 0 1))))
 (defun solve (&optional (lvl 0))
   (push lvl *solution*)
   (let ((column (choose-column *matrix*)))

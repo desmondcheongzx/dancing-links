@@ -1,11 +1,3 @@
-(defpackage :dancing-links
-  (:use :common-lisp)
-  (:export :initialize-matrix
-	   :solve-matrix
-	   :cover-column
-	   :traverse-matrix
-	   :header-data))
-
 (in-package :dancing-links)
 
 (defclass data ()
@@ -138,6 +130,9 @@
     (setf (up column) new-data)
     (incf (size column)) ;increase the size of the column
     new-data))
+
+(defun access-name (header-data)
+  (name header-data))
 
 (defun testor ()
   (initialize-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)

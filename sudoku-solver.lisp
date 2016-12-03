@@ -1,10 +1,3 @@
-(compile-file "dancing-links.lisp")
-(load "dancing-links")
-
-(defpackage :sudoku-solver
-  (:use :common-lisp
-	:dancing-links))
-
 (in-package :sudoku-solver)
 
 (defvar *board* nil) ;solved sudoku board
@@ -18,7 +11,7 @@
     (multiple-value-bind (size board) (input-board)
       (let* ((sqrt-size (sqrt size))
 	     (square (* size size))
-	     (blank-row (loop for i from 1 to (* 3 (* size size)) collect 0))
+	     (blank-row (loop for i from 1 to (* 4 (* size size)) collect 0))
 	     (matrix-headers (append
 			      (gen 'sqr size)
 			      (gen 'row size)
@@ -33,8 +26,28 @@
 			    (setf (elt new-row (+ (* size col) square square num)) 1)
 			    (setf (elt new-row (round (+ (* (+ (* (floor row sqrt-size) sqrt-size)
 							       (floor col sqrt-size)) size) num))) 1)
+			    (setf (elt new-row (+ (* row size) col square square square)) 1)
 			    (push new-row dense-matrix)))))
-	(initialize-matrix matrix-headers dense-matrix *matrix*)))))
+	(initialize-matrix matrix-headers dense-matrix *matrix*)
+	(loop
+	   for row in board
+	   for rowi = 1 then (1+ rowi)
+	   do (loop
+		 for col in row
+		 for colj = 1 then (1+ colj)
+		 do (unless (zerop col)
+		      (let ((box (round (+ (* (floor (1- rowi) sqrt-size) sqrt-size)
+					   (floor (1- colj) sqrt-size) 1))))
+			(remove-from-matrix rowi colj box col)))))))))
+
+(defun remove-from-matrix (rowi colj box val)
+  (let ((hits (list (list 'row rowi val)
+		    (list 'col colj val)
+		    (list 'pos rowi colj)
+		    (list 'sqr box val))))
+  (traverse-matrix cur *matrix* right
+		   (when (member (access-name cur) hits)
+		     (cover-column cur)))))
   
 (defun input-board ()
   (let* ((size (read))

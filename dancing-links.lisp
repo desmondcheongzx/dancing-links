@@ -34,8 +34,8 @@
 (defvar *matrix* nil)
 (defvar *solution* nil)
 
-(defun solve-matrix (columns matrix)
-  (initialize-matrix columns matrix *matrix*)
+(defun solve-matrix (matrix)
+  (setf *matrix* matrix)
   (setf *solution* nil)
   (solve))
 
@@ -138,12 +138,14 @@
     new-data))
 
 (defun testor ()
-  (solve-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
-				   (1 0 0 1 0 0 1)
-				   (0 1 1 0 0 1 0)
-				   (1 0 0 1 0 0 0)
-				   (0 1 0 0 0 0 1)
-				   (0 0 0 1 1 0 1))))
+  (initialize-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
+					(1 0 0 1 0 0 1)
+					(0 1 1 0 0 1 0)
+					(1 0 0 1 0 0 0)
+					(0 1 0 0 0 0 1)
+					(0 0 0 1 1 0 1))
+		     *matrix*)
+  (solve-matrix *matrix*))
 
 (defun explore (matrix)
   (let ((cursor matrix))

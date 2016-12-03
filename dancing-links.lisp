@@ -1,6 +1,8 @@
 (defpackage :dancing-links
   (:use :common-lisp)
-  (:export :solve-matrix))
+  (:export :initialize-matrix
+	   :solve-matrix
+	   :cover-column))
 
 (in-package :dancing-links)
 
@@ -33,23 +35,24 @@
 (defvar *solution* nil)
 
 (defun solve-matrix (columns matrix)
-  (initialize-matrix columns matrix)
+  (initialize-matrix columns matrix *matrix*)
   (setf *solution* nil)
   (solve))
 
-(defun initialize-matrix (columns matrix)
-  (setf *matrix* (make-instance 'header-data
+(defun initialize-matrix (columns matrix place)
+  (setf place (make-instance 'header-data
 				:name 'header
 				:columns columns))
   (loop for row in matrix do (add-row row)))
 
 (defun testor ()
   (solve-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
-					(1 0 0 1 0 0 1)
-					(0 1 1 0 0 1 0)
-					(1 0 0 1 0 0 0)
-					(0 1 0 0 0 0 1)
-					(0 0 0 1 1 0 1))))
+				   (1 0 0 1 0 0 1)
+				   (0 1 1 0 0 1 0)
+				   (1 0 0 1 0 0 0)
+				   (0 1 0 0 0 0 1)
+				   (0 0 0 1 1 0 1))))
+
 (defun solve (&optional (lvl 0))
   (push lvl *solution*)
   (let ((column (choose-column *matrix*)))

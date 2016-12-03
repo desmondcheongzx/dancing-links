@@ -40,6 +40,10 @@
 					   (floor (1- colj) sqrt-size) 1))))
 			(remove-from-matrix rowi colj box col)))))))))
 
+(defun print-headers (matrix)
+  (traverse-matrix column matrix right
+		   (print (name column))))
+
 (defun solve-sudoku ()
   (generate-matrix)
   (solve-matrix *matrix*))
@@ -49,9 +53,9 @@
 		    (list 'col colj val)
 		    (list 'pos rowi colj)
 		    (list 'sqr box val))))
-  (traverse-matrix cur *matrix* right
-		   (when (member (name cur) hits)
-		     (cover-column cur)))))
+    (traverse-matrix cur *matrix* right
+		     (when (member (name cur) hits :test #'equal)
+		       (cover-column cur)))))
   
 (defun input-board ()
   (let* ((size (read))

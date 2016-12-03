@@ -45,14 +45,6 @@
 			       :columns ,columns))
 	  (loop for row in ,matrix do (add-row row ,place))))
 
-(defun testor ()
-  (solve-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
-				   (1 0 0 1 0 0 1)
-				   (0 1 1 0 0 1 0)
-				   (1 0 0 1 0 0 0)
-				   (0 1 0 0 0 0 1)
-				   (0 0 0 1 1 0 1))))
-
 (defmacro traverse-matrix (var start dir &rest body)
   `(loop
       for ,var = (,dir ,start) then (,dir ,var)
@@ -111,10 +103,9 @@
 				    (incf (size column))
 				    (setf (down (up i)) i)
 				    (setf (up (down i)) i))))
-     
-;it's a sparse table, we're allowed to be sligtly inefficient for each insertion. Cut me some slack man
+
 (defmacro add-row (row matrix)
-  "Adds a row of data objects to *matrix*."
+  "Adds a row of data objects to matrix"
   `(let ((leftmost nil))
      (loop
 	for i in ,row
@@ -145,6 +136,14 @@
     (setf (up column) new-data)
     (incf (size column)) ;increase the size of the column
     new-data))
+
+(defun testor ()
+  (solve-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
+				   (1 0 0 1 0 0 1)
+				   (0 1 1 0 0 1 0)
+				   (1 0 0 1 0 0 0)
+				   (0 1 0 0 0 0 1)
+				   (0 0 0 1 1 0 1))))
 
 (defun explore (matrix)
   (let ((cursor matrix))

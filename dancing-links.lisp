@@ -28,10 +28,10 @@
 (defvar *matrix* nil)
 (defvar *solution* nil)
 
-(defun solve-matrix (matrix)
+(defun solve-matrix (matrix win)
   (setf *matrix* matrix)
   (setf *solution* nil)
-  (solve))
+  (solve win))
 
 (defmacro initialize-matrix (columns matrix place)
   `(progn (setf ,place (make-instance 'header-data
@@ -45,10 +45,10 @@
       until (equal ,var ,start)
       do (progn ,@body)))
 
-(defun solve (&optional (lvl 0))
+(defun solve (win &optional (lvl 0))
   (push lvl *solution*)
   (let ((column (choose-column *matrix*)))
-    (if (equal column *matrix*) (print-solution)
+    (if (equal column *matrix*) (funcall win *solution*)
 	(unless (zerop (size column))
 	  (push (name column) *solution*)
 	  (cover-column column)
@@ -56,7 +56,7 @@
 		  (traverse-matrix i row right
 				   (cover-column (column i))
 				   (push (name (column i)) *solution*))
-		  (solve (1+ lvl))
+		  (solve win (1+ lvl))
 		  (traverse-matrix i row left
 				   (uncover-column (column i))
 				   (pop *solution*)))
@@ -64,10 +64,10 @@
 	  (pop *solution*))))
   (pop *solution*))
 
-(defun print-solution ()
-  (print *solution*)
+(defun print-solution (solution)
+  (print solution)
   (loop
-     for i in (reverse *solution*)
+     for i in (reverse solution)
      do (if (numberp i) (format t "~%")
 	    (format t "~a" i))))
 
@@ -139,7 +139,7 @@
 					(0 1 0 0 0 0 1)
 					(0 0 0 1 1 0 1))
 		     *matrix*)
-  (solve-matrix *matrix*))
+  (solve-matrix *matrix* #'print-solution))
 
 (defun explore (matrix)
   (let ((cursor matrix))

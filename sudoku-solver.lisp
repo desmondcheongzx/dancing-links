@@ -2,6 +2,7 @@
 
 (defvar *board* nil) ;solved sudoku board
 (defvar *matrix* nil)
+(defvar *counter* 0)
 
 (labels ((gen (sym size)
 	   (apply #'append (loop for i from 1 to size
@@ -29,6 +30,7 @@
 			    (setf (elt new-row (+ (* row size) col square square square)) 1)
 			    (push new-row dense-matrix)))))
 	(initialize-matrix matrix-headers dense-matrix *matrix*)
+	(setf *board* board)
 	(loop
 	   for row in board
 	   for rowi = 1 then (1+ rowi)
@@ -46,7 +48,18 @@
 
 (defun solve-sudoku ()
   (generate-matrix)
-  (solve-matrix *matrix*))
+  (setf *counter* 0)
+  (solve-matrix *matrix*
+		#'(lambda (solution)
+		    (incf *counter*)
+		    (let ((val 0))
+		      (loop for header in (reverse solution)
+			 do (when (listp header)
+			      (if (equal (car header) 'pos)
+				  (setf (elt (elt *board* (1- (second header))) (1- (third header))) val)
+				  (setf val (third header)))))
+		      (format t "Solution:~%~{~{~a~^ ~}~%~}~%" *board*))))
+  (format t "There are ~a solution(s) in total~%" *counter*))
 
 (defun remove-from-matrix (rowi colj box val)
   (let ((hits (list (list 'row rowi val)

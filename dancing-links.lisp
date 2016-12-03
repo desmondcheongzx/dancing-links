@@ -2,7 +2,8 @@
   (:use :common-lisp)
   (:export :initialize-matrix
 	   :solve-matrix
-	   :cover-column))
+	   :cover-column
+	   :traverse-matrix))
 
 (in-package :dancing-links)
 

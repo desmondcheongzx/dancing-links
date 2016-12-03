@@ -3,7 +3,8 @@
   (:export :initialize-matrix
 	   :solve-matrix
 	   :cover-column
-	   :traverse-matrix))
+	   :traverse-matrix
+	   :header-data))
 
 (in-package :dancing-links)
 

@@ -131,9 +131,6 @@
     (incf (size column)) ;increase the size of the column
     new-data))
 
-(defun access-name (header-data)
-  (name header-data))
-
 (defun testor ()
   (initialize-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
 					(1 0 0 1 0 0 1)

@@ -40,13 +40,17 @@
 					   (floor (1- colj) sqrt-size) 1))))
 			(remove-from-matrix rowi colj box col)))))))))
 
+(defun solve-sudoku ()
+  (generate-matrix)
+  (solve-matrix *matrix*))
+
 (defun remove-from-matrix (rowi colj box val)
   (let ((hits (list (list 'row rowi val)
 		    (list 'col colj val)
 		    (list 'pos rowi colj)
 		    (list 'sqr box val))))
   (traverse-matrix cur *matrix* right
-		   (when (member (access-name cur) hits)
+		   (when (member (name cur) hits)
 		     (cover-column cur)))))
   
 (defun input-board ()

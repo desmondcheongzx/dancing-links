@@ -7,7 +7,8 @@
 	   :cover-column
 	   :data
 	   :header-data
-	   :access-name
+	   :name
+	   :right
 	   :traverse-matrix))
 
 (defpackage :sudoku-solver

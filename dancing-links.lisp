@@ -39,11 +39,11 @@
   (setf *solution* nil)
   (solve))
 
-(defun initialize-matrix (columns matrix place)
-  (setf place (make-instance 'header-data
-				:name 'header
-				:columns columns))
-  (loop for row in matrix do (add-row row)))
+(defmacro initialize-matrix (columns matrix place)
+  `(progn (setf ,place (make-instance 'header-data
+			       :name 'header
+			       :columns ,columns))
+	  (loop for row in ,matrix do (add-row row ,place))))
 
 (defun testor ()
   (solve-matrix '(a b c d e f g) '((0 0 1 0 1 1 0)
@@ -53,6 +53,12 @@
 				   (0 1 0 0 0 0 1)
 				   (0 0 0 1 1 0 1))))
 
+(defmacro traverse-matrix (var start dir &rest body)
+  `(loop
+      for ,var = (,dir ,start) then (,dir ,var)
+      until (equal ,var ,start)
+      do (progn ,@body)))
+
 (defun solve (&optional (lvl 0))
   (push lvl *solution*)
   (let ((column (choose-column *matrix*)))
@@ -60,104 +66,72 @@
 	(unless (zerop (size column))
 	  (push (name column) *solution*)
 	  (cover-column column)
-	  (loop
-	     for row = (down column) then (down row)
-	     until (equal row column)
-	     do (progn
-		  (loop
-		     for i = (right row) then (right i)
-		     until (equal i row)
-		     do (progn
-			  (cover-column (column i))
-			  (push (name (column i)) *solution*)))
+	  (traverse-matrix row column down
+		  (traverse-matrix i row right
+				   (cover-column (column i))
+				   (push (name (column i)) *solution*))
 		  (solve (1+ lvl))
-		  (loop
-		     for i = (left row) then (left i)
-		     until (equal i row)
-		     do (progn
-			  (uncover-column (column i))
-			  (pop *solution*)))))
+		  (traverse-matrix i row left
+				   (uncover-column (column i))
+				   (pop *solution*)))
 	  (uncover-column column)
 	  (pop *solution*))))
   (pop *solution*))
-  
+
 (defun print-solution ()
   (print *solution*)
-  (format t "~%")
   (loop
      for i in (reverse *solution*)
      do (if (numberp i) (format t "~%")
 	    (format t "~a" i))))
 
-(defun print-state (lvl matrix)
-  (format t "~a " lvl)
-  (print-matrix matrix))
-
-(defun print-matrix (matrix)
-  (loop
-     for i = (right matrix) then (right i)
-     until (equal i matrix)
-     do (format t "~a " (name i))
-     finally (format t "~%")))
-
 (defun choose-column (matrix)
   (let ((s most-positive-fixnum)
-	(column matrix))
-    (loop
-       for c = (right matrix) then (right c)
-       until (equal c matrix)
-       do (when (< (size c) s)
-	    (setf s (size c))
-	    (setf column c)))
-    column))
+	(chosen-column matrix))
+    (traverse-matrix column matrix right
+		     (when (< (size column) s)
+		       (setf s (size column))
+		       (setf chosen-column column)))
+    chosen-column))
 
 (defun cover-column (column)
   (setf (right (left column)) (right column))
   (setf (left (right column)) (left column)) ;dance column out
-  (loop ;dance row out
-     for row = (down column) then (down row)
-     until (equal row column)
-     do (loop
-	   for i = (right row) then (right i)
-	   until (equal i row)
-	   do (progn
-		(decf (size column))
-		(setf (down (up i)) (down i))
-		(setf (up (down i)) (up i))))))
+  (traverse-matrix row column down ;dance row out
+		   (traverse-matrix i row right
+				    (decf (size column))
+				    (setf (down (up i)) (down i))
+				    (setf (up (down i)) (up i)))))
 
 (defun uncover-column (column)
   (setf (right (left column)) column)
   (setf (left (right column)) column) ;dance column in
-  (loop ;dance row in
-     for row = (up column) then (up row)
-     until (equal row column)
-     do (loop
-	   for i = (left row) then (left i)
-	   until (equal i row)
-	   do (progn
-		(incf (size column))
-		(setf (down (up i)) i)
-		(setf (up (down i)) i)))))
+  (traverse-matrix row column up ;dance row in
+		   (traverse-matrix i row left
+				    (incf (size column))
+				    (setf (down (up i)) i)
+				    (setf (up (down i)) i))))
      
 ;it's a sparse table, we're allowed to be sligtly inefficient for each insertion. Cut me some slack man
-(defun add-row (row)
+(defmacro add-row (row matrix)
   "Adds a row of data objects to *matrix*."
-  (let ((leftmost nil))
-    (loop
-       for i in row
-       for c = (first-column *matrix*) then (right c)
-       do (when (= i 1)
-	    (let ((new-data (insert-data c)))
-	      (if (null leftmost)
-		  (progn
-		    (setf leftmost new-data)
-		    (setf (left leftmost) leftmost)
-		    (setf (right leftmost) leftmost))
-		  (progn
-		    (setf (right new-data) leftmost)
-		    (setf (left new-data) (left leftmost))
-		    (setf (right (left leftmost)) new-data)
-		    (setf (left leftmost) new-data))))))))
+  `(let ((leftmost nil))
+     (loop
+	for i in ,row
+	for c = (first-column ,matrix) then (right c)
+	do (when (= i 1)
+	     (let ((new-data (insert-data c)))
+	       (if (null leftmost)
+		   (progn
+		     (setf leftmost new-data)
+		     (setf (left leftmost) leftmost)
+		     (setf (right leftmost) leftmost))
+		   (progn
+		     (setf (right new-data) leftmost)
+		     (setf (left new-data) (left leftmost))
+		     (setf (right (left leftmost)) new-data)
+		     (setf (left leftmost) new-data))))))))
+
 
 (defun first-column (matrix) (right matrix))
 

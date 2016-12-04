@@ -12,4 +12,5 @@
 	   :traverse-matrix))
 
 (defpackage :sudoku-solver
-  (:use :common-lisp :dancing-links))
+  (:use :common-lisp :dancing-links)
+  (:export :solve-sudoku))

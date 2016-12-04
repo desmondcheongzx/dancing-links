@@ -58,8 +58,8 @@
 			      (if (equal (car header) 'pos)
 				  (setf (elt (elt *board* (1- (second header))) (1- (third header))) val)
 				  (setf val (third header)))))
-		      (format t "Solution:~%~{~{~a~^ ~}~%~}~%" *board*))))
-  (format t "There are ~a solution(s) in total~%" *counter*))
+		      (format t "~%Solution:~%~{~{~a~^ ~}~%~}~%" *board*))))
+  (format t "There ~[are~;is~:;are~] ~a solution~:p in total~%" *counter* *counter*))
 
 (defun remove-from-matrix (rowi colj box val)
   (let ((hits (list (list 'row rowi val)

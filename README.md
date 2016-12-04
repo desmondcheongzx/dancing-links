@@ -7,5 +7,5 @@ The algorithms themselves are straightforward (evidenced by Knuth's inability to
 This is my attempt at implementing Dancing Links in common lisp to learn more about the algorithm and about lisp.
 
 ## Problems solved
--Exact Cover
--Sudoku
+- Exact Cover
+- Sudoku
